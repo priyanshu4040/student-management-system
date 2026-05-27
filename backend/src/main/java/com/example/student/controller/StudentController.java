@@ -2,6 +2,7 @@ package com.example.student.controller;
 
 import com.example.student.model.Student;
 import com.example.student.repository.StudentRepository;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,9 +18,9 @@ public class StudentController {
         this.studentRepository = studentRepository;
     }
 
-
     @PostMapping
-    public Student addStudent(@RequestBody Student student) {
+    public Student addStudent(@Valid @RequestBody Student student) {
+        student.setGrade(calculateGrade(student.getMarks()));
         return studentRepository.save(student);
     }
 
@@ -34,13 +35,15 @@ public class StudentController {
     }
 
     @PutMapping("/{id}")
-    public Student updateStudent(@PathVariable Long id, @RequestBody Student newStudent) {
+    public Student updateStudent(@PathVariable Long id, @Valid @RequestBody Student newStudent) {
         Student student = studentRepository.findById(id).orElse(null);
 
         if (student != null) {
             student.setStudentName(newStudent.getStudentName());
             student.setSubjectName(newStudent.getSubjectName());
             student.setMarks(newStudent.getMarks());
+            student.setGrade(calculateGrade(newStudent.getMarks()));
+
             return studentRepository.save(student);
         }
 
@@ -51,5 +54,14 @@ public class StudentController {
     public String deleteStudent(@PathVariable Long id) {
         studentRepository.deleteById(id);
         return "Student deleted successfully";
+    }
+
+    private String calculateGrade(int marks) {
+        if (marks >= 90) return "A+";
+        else if (marks >= 80) return "A";
+        else if (marks >= 70) return "B";
+        else if (marks >= 60) return "C";
+        else if (marks >= 40) return "D";
+        else return "Fail";
     }
 }
